@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weather Forecast Data</title>
+    <style>
+        /* Existing styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #eef2f3, #8e9eab);
+            padding: 20px;
+            color: #333;
+        }
+
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        form {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="date"] {
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 8px 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .table-container {
+            max-height: 70vh;
+            overflow-y: auto;
+            background-color: white;
+            border-radius: 6px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+        }
+
+        th {
+            background-color: #34495e;
+            color: white;
+            padding: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Condition image styling */
+        .condition-icon {
+            width: 32px;
+            height: 32px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+
+        /* Clickable cells */
+        .clickable-cell {
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .clickable-cell:hover {
+            background-color: #e3f2fd !important;
+            font-weight: bold;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            width: 300px;
+            max-width: 90%;
+            animation: modalopen 0.3s;
+            position: relative;
+        }
+
+        @keyframes modalopen {
+            from {opacity: 0; transform: scale(0.8);}
+            to {opacity: 1; transform: scale(1);}
+        }
+
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #777;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .weather-card {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .weather-card-header {
+            margin-bottom: 15px;
+        }
+
+        .weather-card-header h3 {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .weather-icon {
+            width: 80px;
+            height: 80px;
+            margin: 10px auto;
+        }
+
+        .weather-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .detail-item {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .detail-item .label {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .detail-item .value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .wind-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .wind-direction {
+            width: 30px;
+            height: 30px;
+            background-color: #3498db;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 18px;
+            color: white;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            form {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+
+            tr {
+                margin-bottom: 10px;
+                border: 1px solid #ccc;
+                padding: 10px;
+                border-radius: 6px;
+                background-color: white;
+            }
+
+            td {
+                border: none;
+                position: relative;
+                padding-left: 50%;
+                text-align: left;
+            }
+
+            td::before {
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                width: 45%;
+                white-space: nowrap;
+                font-weight: bold;
+                color: #34495e;
+            }
+
+            td:nth-of-type(1)::before { content: "State"; }
+            td:nth-of-type(2)::before { content: "LOCNO"; }
+            td:nth-of-type(3)::before { content: "PlantNo"; }
+            td:nth-of-type(4)::before { content: "Latitude"; }
+            td:nth-of-type(5)::before { content: "Longitude"; }
+            td:nth-of-type(6)::before { content: "WindSpeed"; }
+            td:nth-of-type(7)::before { content: "WindGust"; }
+            td:nth-of-type(8)::before { content: "WindDir"; }
+            td:nth-of-type(9)::before { content: "Conditions"; }
+            td:nth-of-type(10)::before { content: "Temp"; }
+            td:nth-of-type(11)::before { content: "Tempmin"; }
+            td:nth-of-type(12)::before { content: "Tempmax"; }
+            td:nth-of-type(13)::before { content: "Humidity"; }
+            td:nth-of-type(14)::before { content: "Precip"; }
+            td:nth-of-type(15)::before { content: "ForecastDate"; }
+            td:nth-of-type(16)::before { content: "CreatedOn"; }
+            
+            /* Mobile condition image */
+            .condition-icon {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                width: 24px;
+                height: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h2>🌤️ Weather Forecast Data</h2>
+
+    <!-- Filter Form -->
+    <form method="get" action="">
+        <div>
+            <label for="from_date">From Date:</label>
+            <input type="date" id="from_date" name="from_date" value="{{ request.args.get('from_date', '') }}">
+        </div>
+
+        <div>
+            <label for="to_date">To Date:</label>
+            <input type="date" id="to_date" name="to_date" value="{{ request.args.get('to_date', '') }}">
+        </div>
+
+        <div>
+            <button type="submit">Filter</button>
+        </div>
+    </form>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>State</th>
+                    <th>LOCNO</th>
+                    <th>PlantNo</th>
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                    <th>WindSpeed</th>
+                    <th>WindGust</th>
+                    <th>WindDir</th>
+                    <th>Conditions</th>
+                    <th>Temp</th>
+                    <th>Tempmin</th>
+                    <th>Tempmax</th>
+                    <th>Humidity</th>
+                    <th>Precip</th>
+                    <th>ForecastDate</th>
+                    <th>CreatedOn</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in weather_data %}
+                <tr>
+                    <td class="clickable-cell" data-row="{{ loop.index0 }}">{{ row.State }}</td>
+                    <td class="clickable-cell" data-row="{{ loop.index0 }}">{{ row.LOCNO }}</td>
+                    <td class="clickable-cell" data-row="{{ loop.index0 }}">{{ row.PlantNo }}</td>
+                    <td>{{ row.Latitude }}</td>
+                    <td>{{ row.Longitude }}</td>
+                    <td>{{ row.WindSpeed }}</td>
+                    <td>{{ row.WindGust }}</td>
+                    <td>{{ row.WindDir }}</td>
+                    <td>
+                        <img src="{{ get_weather_icon(row.Conditions) }}" alt="{{ row.Conditions }}" class="condition-icon">
+                        {{ row.Conditions }}
+                    </td>
+                    <td>{{ row.Temp }}</td>
+                    <td>{{ row.Tempmin }}</td>
+                    <td>{{ row.Tempmax }}</td>
+                    <td>{{ row.Humidity }}</td>
+                    <td>{{ row.Precip }}</td>
+                    <td>{{ row.ForecastDate.strftime("%Y-%m-%d") if row.ForecastDate else '' }}</td>
+                    <td>{{ row.Createdon.strftime("%Y-%m-%d %H:%M:%S") if row.Createdon else '' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Weather Detail Modal -->
+    <div id="weatherModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="weather-card">
+                <div class="weather-card-header">
+                    <h3 id="modal-location">Location Details</h3>
+                </div>
+                <img id="modal-condition-icon" src="" alt="Weather Condition" class="weather-icon">
+                <div class="weather-details">
+                    <div class="detail-item">
+                        <div class="label">Temperature</div>
+                        <div class="value" id="modal-temp">--</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="label">Humidity</div>
+                        <div class="value" id="modal-humidity">--</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="label">Precipitation</div>
+                        <div class="value" id="modal-precip">--</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="label">Wind Speed</div>
+                        <div class="value" id="modal-wind">--</div>
+                    </div>
+                </div>
+                <div class="wind-info">
+                    <div class="wind-direction" id="wind-direction">↑</div>
+                    <div class="wind-detail">
+                        <div class="label">Wind Direction</div>
+                        <div class="value" id="modal-wind-dir">--</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Weather icon mapping
+        const weatherIcons = {
+            'Clear': 'https://cdn-icons-png.flaticon.com/512/6974/6974833.png',
+            'Clouds': 'https://cdn-icons-png.flaticon.com/512/414/414927.png',
+            'Rain': 'https://cdn-icons-png.flaticon.com/512/3351/3351979.png',
+            'Snow': 'https://cdn-icons-png.flaticon.com/512/642/642102.png',
+            'Thunderstorm': 'https://cdn-icons-png.flaticon.com/512/1146/1146860.png',
+            'Drizzle': 'https://cdn-icons-png.flaticon.com/512/3075/3075850.png',
+            'Mist': 'https://cdn-icons-png.flaticon.com/512/1197/1197102.png',
+            'Smoke': 'https://cdn-icons-png.flaticon.com/512/4380/4380508.png',
+            'Haze': 'https://cdn-icons-png.flaticon.com/512/1197/1197102.png',
+            'Dust': 'https://cdn-icons-png.flaticon.com/512/4380/4380508.png',
+            'Fog': 'https://cdn-icons-png.flaticon.com/512/1197/1197102.png',
+            'Sand': 'https://cdn-icons-png.flaticon.com/512/4380/4380508.png',
+            'Ash': 'https://cdn-icons-png.flaticon.com/512/4380/4380508.png',
+            'Squall': 'https://cdn-icons-png.flaticon.com/512/1146/1146860.png',
+            'Tornado': 'https://cdn-icons-png.flaticon.com/512/414/414974.png',
+            'default': 'https://cdn-icons-png.flaticon.com/512/414/414825.png'
+        };
+
+        // Wind direction symbols
+        const windDirections = {
+            'N': '↑', 'NNE': '↗', 'NE': '↗', 'ENE': '↗',
+            'E': '→', 'ESE': '↘', 'SE': '↘', 'SSE': '↘',
+            'S': '↓', 'SSW': '↙', 'SW': '↙', 'WSW': '↙',
+            'W': '←', 'WNW': '↖', 'NW': '↖', 'NNW': '↖'
+        };
+
+        // Get modal elements
+        const modal = document.getElementById('weatherModal');
+        const closeBtn = document.querySelector('.close');
+        const locationElement = document.getElementById('modal-location');
+        const conditionIcon = document.getElementById('modal-condition-icon');
+        const tempElement = document.getElementById('modal-temp');
+        const humidityElement = document.getElementById('modal-humidity');
+        const precipElement = document.getElementById('modal-precip');
+        const windElement = document.getElementById('modal-wind');
+        const windDirElement = document.getElementById('modal-wind-dir');
+        const windDirectionSymbol = document.getElementById('wind-direction');
+
+        // Close modal when clicking close button
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // Add click event to clickable cells
+        document.querySelectorAll('.clickable-cell').forEach(cell => {
+            cell.addEventListener('click', function() {
+                const rowIndex = this.getAttribute('data-row');
+                const row = this.closest('tr');
+                
+                // Extract data from row
+                const state = row.cells[0].textContent;
+                const locno = row.cells[1].textContent;
+                const plantno = row.cells[2].textContent;
+                const conditions = row.cells[8].textContent.trim();
+                const temp = row.cells[9].textContent;
+                const humidity = row.cells[12].textContent;
+                const precip = row.cells[13].textContent;
+                const windSpeed = row.cells[5].textContent;
+                const windDir = row.cells[7].textContent;
+                
+                // Set modal content
+                locationElement.textContent = `${state} - ${locno} (Plant ${plantno})`;
+                conditionIcon.src = weatherIcons[conditions] || weatherIcons['default'];
+                tempElement.textContent = `${temp}°C`;
+                humidityElement.textContent = `${humidity}%`;
+                precipElement.textContent = `${precip} mm`;
+                windElement.textContent = `${windSpeed} km/h`;
+                windDirElement.textContent = windDir;
+                
+                // Set wind direction symbol
+                if (windDir) {
+                    const shortDir = windDir.length > 3 ? windDir.substring(0, 3) : windDir;
+                    windDirectionSymbol.textContent = windDirections[shortDir] || '--';
+                } else {
+                    windDirectionSymbol.textContent = '--';
+                }
+                
+                // Show modal
+                modal.style.display = 'flex';
+            });
+        });
+    </script>
+</body>
+</html>
